@@ -10,6 +10,8 @@ import { useRoadmapStream } from "@/hooks/useRoadmapStream"
 import { useRoadmapStore } from "@/store/roadmapStore"
 import { useSearchParams } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 function RoadmapContent() {
   const searchParams = useSearchParams()
   const q = searchParams.get("q")
