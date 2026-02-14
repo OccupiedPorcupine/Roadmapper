@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.models import Base
@@ -11,6 +12,7 @@ engine = create_async_engine(
     settings.database_url,
     echo=False,
     future=True,
+    poolclass=NullPool,
 )
 
 async_session_factory = async_sessionmaker(

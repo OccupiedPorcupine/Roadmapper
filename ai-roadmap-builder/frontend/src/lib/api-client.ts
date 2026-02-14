@@ -1,7 +1,9 @@
 
 import { getSession } from "next-auth/react"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+// API Base URL should be the root (e.g., https://my-app.onrender.com)
+const ENV_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_BASE_URL = `${ENV_URL}/api`
 
 type FetchOptions = Omit<RequestInit, 'headers'> & {
     headers?: Record<string, string>

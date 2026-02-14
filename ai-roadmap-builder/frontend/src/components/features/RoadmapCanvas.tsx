@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo } from "react"
+import { useSession } from "next-auth/react"
 import ReactFlow, {
   Background,
   Controls,
@@ -93,6 +94,7 @@ function RoadmapCanvasInner() {
   const storeNodes = useRoadmapStore((s) => s.nodes)
   const storeEdges = useRoadmapStore((s) => s.edges)
   const setSelectedNode = useRoadmapStore((s) => s.setSelectedNode)
+  const { data: session } = useSession()
 
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(
     () => getLayoutedElements(storeNodes, storeEdges),
@@ -138,7 +140,7 @@ function RoadmapCanvasInner() {
         // Topic query we might not have if it was wiped on reload, but store should have it?
         // Actually store doesn't persist the query string in `roadmapStore` explicitly except in URL maybe?
         // Let's use a default title for now.
-        const title = storeNodes.length > 0 ? storeNodes[0].data.label : "Untitled Roadmap";
+        const title = storeNodes.length > 0 ? storeNodes[0].label : "Untitled Roadmap";
         const newRoadmap = await roadmapService.create({
           title,
           topic_query: "Manual Save", // We don't track the original query in store yet, this is a minor debt.
@@ -158,11 +160,13 @@ function RoadmapCanvasInner() {
 
   return (
     <div className="relative h-full w-full bg-black">
-      <div className="absolute right-4 top-4 z-10">
-        <NeonButton onClick={handleSave} disabled={isSaving} className="!w-auto px-6 text-white">
-          {isSaving ? "Saving..." : currentRoadmapId ? "Save Changes" : "Save to Account"}
-        </NeonButton>
-      </div>
+      {session?.user && (
+        <div className="absolute right-4 top-4 z-10">
+          <NeonButton onClick={handleSave} disabled={isSaving} className="!w-auto px-6 text-white">
+            {isSaving ? "Saving..." : currentRoadmapId ? "Save Changes" : "Save to Account"}
+          </NeonButton>
+        </div>
+      )}
       <ReactFlow
         nodes={nodes}
         edges={edges}
