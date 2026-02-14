@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js
+.next/
+**/.next/
+out/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+
+# Env files (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# Build outputs
+*.egg
+*.egg-info/
