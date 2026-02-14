@@ -31,7 +31,7 @@ def decode_access_token(token: str) -> TokenPayloadSchema | None:
     try:
         payload: dict[str, Any] = jwt.decode(
             token,
-            settings.jwt_secret,
+            settings.auth_secret,
             algorithms=[settings.jwt_algorithm],
         )
         return TokenPayloadSchema(

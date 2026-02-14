@@ -30,12 +30,25 @@ async def get_current_user_optional(
     payload = decode_access_token(token)
     if not payload:
         return None
-    try:
-        user_id = UUID(payload.sub)
-    except ValueError:
-        return None
-    result = await db.execute(select(User).where(User.id == user_id))
+    
+    # Sync user from token to DB
+    # We trust the email from the token because it's signed by our shared secret (via NextAuth)
+    result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
+
+    if not user:
+        # Create new user
+        user = User(
+            email=payload.email,
+            # full_name and picture might not be in the minimal payload, 
+            # but usually NextAuth JWT has name/picture. 
+            # We'd need to update TokenPayloadSchema to include them to extract them here.
+            # For now, create with email.
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    
     return user
 
 

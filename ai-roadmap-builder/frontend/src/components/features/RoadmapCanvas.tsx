@@ -5,8 +5,10 @@ import ReactFlow, {
   Background,
   Controls,
   Edge,
+  Handle,
   Node,
   NodeProps,
+  Position,
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
@@ -15,7 +17,8 @@ import "reactflow/dist/style.css"
 import dagre from "dagre"
 import { useRoadmapStore } from "@/store/roadmapStore"
 import type { RoadmapEdge, RoadmapNode } from "@/types"
-import { Button } from "@/components/ui/moving-border"
+import { Button as NeonButton } from "@/components/ui/neon-button"
+import ShineEdge from "@/components/features/edges/ShineEdge"
 import { cn } from "@/lib/utils"
 
 const NODE_WIDTH = 180
@@ -27,7 +30,7 @@ function getLayoutedElements(
 ): { nodes: Node[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
-  g.setGraph({ rankdir: "TB", nodesep: 48, ranksep: 56 })
+  g.setGraph({ rankdir: "TB", nodesep: 80, ranksep: 100 })
 
   const nodes: Node[] = roadmapNodes.map((n) => ({
     id: n.id,
@@ -40,6 +43,7 @@ function getLayoutedElements(
     id: e.id,
     source: e.source,
     target: e.target,
+    pathOptions: { borderRadius: 24 },
   }))
 
   nodes.forEach((node) => g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }))
@@ -64,26 +68,26 @@ function getLayoutedElements(
 
 function RoadmapNodeComponent({ data, selected }: NodeProps<{ label: string }>) {
   return (
-    <Button
-      as="div"
-      borderRadius="1.75rem"
-      duration={3000}
-      containerClassName={cn(
-        "!h-11 !min-w-[140px] !w-[180px] !cursor-default !p-[1px]",
-        selected && "ring-2 ring-white/20 ring-offset-2 ring-offset-black"
-      )}
-      borderClassName="opacity-[0.9]"
-      className={cn(
-        "border-white/10 bg-neutral-950/90 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-black/40",
-        selected && "border-white/20"
-      )}
-    >
-      <span className="truncate">{data.label}</span>
-    </Button>
+    <>
+      <Handle type="target" position={Position.Top} className="!bg-transparent !border-none" />
+      <NeonButton
+        as="div"
+        variant="default"
+        neon={true}
+        className={cn(
+          "!h-11 !min-w-[140px] !w-[180px] !cursor-default text-white",
+          selected && "ring-2 ring-white/20 ring-offset-2 ring-offset-black"
+        )}
+      >
+        <span className="truncate block w-full">{data.label}</span>
+      </NeonButton>
+      <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-none" />
+    </>
   )
 }
 
 const nodeTypes = { roadmapNode: RoadmapNodeComponent }
+const edgeTypes = { shine: ShineEdge }
 
 function RoadmapCanvasInner() {
   const storeNodes = useRoadmapStore((s) => s.nodes)
@@ -120,14 +124,14 @@ function RoadmapCanvasInner() {
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         edgesUpdatable={false}
         nodesDraggable={false}
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
-          type: "smoothstep",
-          animated: true,
+          type: "shine",
           style: { stroke: "rgba(255,255,255,0.25)", strokeWidth: 1 },
         }}
       >

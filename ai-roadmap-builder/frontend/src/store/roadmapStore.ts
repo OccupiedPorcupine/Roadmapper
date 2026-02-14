@@ -35,7 +35,14 @@ export const useRoadmapStore = create<RoadmapState>()(
         set((state) => ({ nodes: [...state.nodes, node] })),
 
       addEdge: (edge) =>
-        set((state) => ({ edges: [...state.edges, edge] })),
+        set((state) => {
+          // Prevent duplicates: check if connection already exists
+          const exists = state.edges.some(
+            (e) => e.source === edge.source && e.target === edge.target
+          );
+          if (exists) return {};
+          return { edges: [...state.edges, edge] };
+        }),
 
       setGenerating: (status) => set({ isGenerating: status }),
 

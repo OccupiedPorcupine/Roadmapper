@@ -8,10 +8,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/roadmapper"
 
-    # JWT (auth)
-    jwt_secret: str = "change-me-in-production-use-env"
+    # Auth (Shared Secret with NextAuth)
+    auth_secret: str = "change-me-in-production-use-env"
     jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
 
     # LLM (Gemini by default)
     gemini_api_key: str = ""

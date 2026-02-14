@@ -19,6 +19,8 @@ export function Button({
   borderClassName,
   duration,
   className,
+  rx,
+  ry,
   ...otherProps
 }: {
   borderRadius?: string
@@ -28,6 +30,8 @@ export function Button({
   borderClassName?: string
   duration?: number
   className?: string
+  rx?: string | number
+  ry?: string | number
   [key: string]: unknown
 }) {
   return (
@@ -45,10 +49,10 @@ export function Button({
         className="absolute inset-0"
         style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
       >
-        <MovingBorder duration={duration} rx={30} ry={30}>
+        <MovingBorder duration={duration} rx={rx ?? 30} ry={ry ?? 30}>
           <div
             className={cn(
-              "h-20 w-20 opacity-90 bg-[radial-gradient(var(--sky-500,#0ea5e9)_40%,transparent_60%)]",
+              "h-20 w-20 opacity-90 bg-[radial-gradient(white_40%,transparent_60%)]",
               borderClassName
             )}
           />
@@ -71,15 +75,15 @@ export function Button({
 }
 
 /** Rounded-rect path (clockwise) using arcs - full perimeter for reliable getPointAtLength */
-function roundedRectPath(r = 15) {
-  return `M ${r} 0 L ${100 - r} 0 A ${r} ${r} 0 0 1 100 ${r} L 100 ${100 - r} A ${r} ${r} 0 0 1 ${100 - r} 100 L ${r} 100 A ${r} ${r} 0 0 1 0 ${100 - r} L 0 ${r} A ${r} ${r} 0 0 1 ${r} 0`
+function roundedRectPath(rx: number, ry: number) {
+  return `M ${rx} 0 L ${100 - rx} 0 A ${rx} ${ry} 0 0 1 100 ${ry} L 100 ${100 - ry} A ${rx} ${ry} 0 0 1 ${100 - rx} 100 L ${rx} 100 A ${rx} ${ry} 0 0 1 0 ${100 - ry} L 0 ${ry} A ${rx} ${ry} 0 0 1 ${rx} 0`
 }
 
 export const MovingBorder = ({
   children,
   duration = 2000,
   rx = 15,
-  ry,
+  ry = 15,
   ...otherProps
 }: {
   children: React.ReactNode
@@ -88,13 +92,10 @@ export const MovingBorder = ({
   ry?: number | string
   [key: string]: unknown
 }) => {
-  const pathRef = useRef<SVGPathElement | null>(null)
+  const pathRef = useRef<SVGRectElement | null>(null)
   const progress = useMotionValue<number>(0)
   const accumulatedRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
-
-  const r = typeof rx === "string" ? parseFloat(rx) : rx ?? 15
-  const pathD = roundedRectPath(r)
 
   useAnimationFrame((time, delta) => {
     const el = pathRef.current
@@ -133,7 +134,14 @@ export const MovingBorder = ({
         height="100%"
         {...otherProps}
       >
-        <path fill="none" d={pathD} ref={pathRef} />
+        <rect
+          fill="none"
+          width="100"
+          height="100"
+          rx={rx}
+          ry={ry}
+          ref={pathRef}
+        />
       </svg>
       <motion.div
         style={{
