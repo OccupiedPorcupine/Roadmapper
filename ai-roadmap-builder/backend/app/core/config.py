@@ -24,5 +24,16 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "ignore"
 
+    @property
+    def async_database_url(self) -> str:
+        """
+        Ensure the URL uses the asyncpg driver.
+        Render/Supabase often provide 'postgresql://' which defaults to psycopg2 (sync).
+        """
+        url = self.database_url
+        if url and url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
+
 
 settings = Settings()
