@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, Suspense } from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { RoadmapCanvas } from "@/components/features/RoadmapCanvas"
@@ -10,7 +10,7 @@ import { useRoadmapStream } from "@/hooks/useRoadmapStream"
 import { useRoadmapStore } from "@/store/roadmapStore"
 import { useSearchParams } from "next/navigation"
 
-export default function RoadmapPage() {
+function RoadmapContent() {
   const searchParams = useSearchParams()
   const q = searchParams.get("q")
   const { generateRoadmap } = useRoadmapStream()
@@ -56,5 +56,13 @@ export default function RoadmapPage() {
       ) : null}
       <NodeDetailPanel />
     </div>
+  )
+}
+
+export default function RoadmapPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full bg-black text-white flex items-center justify-center">Loading...</div>}>
+      <RoadmapContent />
+    </Suspense>
   )
 }
