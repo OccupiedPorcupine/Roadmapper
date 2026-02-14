@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --glass-bg: rgba(20, 20, 24, 0.6);
+  /* Solid fill for input container so only the border shows rainbow */
+  --input-fill: #0d0d0f;
+  --gradient-blue: #3b82f6;
+  --gradient-cyan: #06b6d4;
+  --gradient-magenta: #ec4899;
+
+  /* Rainbow button & rainbow-glass border (HSL values without hsl()) */
+  --color-1: 0 100% 63%;
+  --color-2: 270 100% 63%;
+  --color-3: 210 100% 63%;
+  --color-4: 195 100% 63%;
+  --color-5: 90 100% 63%;
+
+  /* shadcn-style tokens for RainbowButton */
+  --primary-foreground: 0 0% 100%;
+  --ring: 210 100% 63%;
+  --speed: 2s;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Gradient text utility for "today?" */
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #3b82f6 0%,
+    #06b6d4 40%,
+    #a855f7 70%,
+    #ec4899 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Text box: solid fill, rainbow only on the border edges */
+.glass-border-glow {
+  --speed: 3s;
+  --border-w: 2px;
+  position: relative;
+  border-radius: 1rem;
+  border: var(--border-w) solid transparent;
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  /* Inner: solid dark. Border only: animated rainbow */
+  background-image: linear-gradient(var(--input-fill), var(--input-fill)),
+    linear-gradient(
+      90deg,
+      hsl(var(--color-1)),
+      hsl(var(--color-5)),
+      hsl(var(--color-3)),
+      hsl(var(--color-4)),
+      hsl(var(--color-2)),
+      hsl(var(--color-1))
+    );
+  background-size: 100% 100%, 200% 100%;
+  background-position: 0 0, 0 0;
+  animation: rainbow-border-bg var(--speed) linear infinite;
+  /* Subtle edge glow only, no fill tint */
+  box-shadow: 0 0 16px hsl(var(--color-3) / 0.2);
+}
+
+@keyframes rainbow-border-bg {
+  0% {
+    background-position: 0 0, 0% 50%;
+  }
+  100% {
+    background-position: 0 0, 200% 50%;
+  }
+}
