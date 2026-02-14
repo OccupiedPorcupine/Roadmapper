@@ -8,11 +8,11 @@ import { NodeDetailPanel } from "@/components/features/NodeDetailPanel"
 import { TextShimmer } from "@/components/ui/text-shimmer"
 import { useRoadmapStream } from "@/hooks/useRoadmapStream"
 import { useRoadmapStore } from "@/store/roadmapStore"
-import { useSearchParams } from "next/navigation"
+export function RoadmapClient({ initialQuery }: { initialQuery: string | null }) {
+    // const searchParams = useSearchParams()  <-- REMOVED
+    // const q = searchParams.get("q")         <-- REMOVED
+    const q = initialQuery;
 
-export function RoadmapClient() {
-    const searchParams = useSearchParams()
-    const q = searchParams.get("q")
     const { generateRoadmap } = useRoadmapStream()
     const nodes = useRoadmapStore((s) => s.nodes)
     const isGenerating = useRoadmapStore((s) => s.isGenerating)
