@@ -18,6 +18,7 @@ export function useRoadmapStream() {
   const setGenerating = useRoadmapStore((s) => s.setGenerating);
   const setShowCanvasView = useRoadmapStore((s) => s.setShowCanvasView);
   const resetRoadmap = useRoadmapStore((s) => s.resetRoadmap);
+  const setRoadmapId = useRoadmapStore((s) => s.setRoadmapId);
   const userApiKey = useRoadmapStore((s) => s.userApiKey);
 
   const generateRoadmap = useCallback(
@@ -28,17 +29,30 @@ export function useRoadmapStream() {
 
       const url = `${getApiBaseUrl()}/api/generate`;
 
+      // Get token properly - we need to dynmically import or use getSession from next-auth/react
+      // But hooks run on client, so getSession is fine.
+      const { getSession } = await import("next-auth/react")
+      const session = await getSession()
+      // @ts-ignore
+      const token = session?.accessToken
+
       try {
         await fetchEventSource(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(userApiKey && { "x-user-api-key": userApiKey }),
+            ...(token && { "Authorization": `Bearer ${token}` }),
           },
           body: JSON.stringify({ query }),
           onmessage(ev) {
             try {
               const parsedData = JSON.parse(ev.data) as Record<string, unknown>;
+
+              if (parsedData.type === "meta") {
+                setRoadmapId(parsedData.id as string);
+              }
+
               if (parsedData.type === "concept") {
                 const data = parsedData.data as { label?: string } | undefined;
                 const label =

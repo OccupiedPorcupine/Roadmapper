@@ -12,11 +12,13 @@ type RoadmapState = {
   showCanvasView: boolean;
   selectedNode: RoadmapNode | null;
   userApiKey: string | null;
+  currentRoadmapId: string | null;
   addNode: (node: RoadmapNode) => void;
   addEdge: (edge: RoadmapEdge) => void;
   setGenerating: (status: boolean) => void;
   setShowCanvasView: (show: boolean) => void;
   setSelectedNode: (node: RoadmapNode | null) => void;
+  setRoadmapId: (id: string | null) => void;
   resetRoadmap: () => void;
   setUserApiKey: (key: string | null) => void;
 };
@@ -30,6 +32,7 @@ export const useRoadmapStore = create<RoadmapState>()(
       showCanvasView: false,
       selectedNode: null,
       userApiKey: null,
+      currentRoadmapId: null,
 
       addNode: (node) =>
         set((state) => ({ nodes: [...state.nodes, node] })),
@@ -50,13 +53,20 @@ export const useRoadmapStore = create<RoadmapState>()(
 
       setSelectedNode: (node) => set({ selectedNode: node }),
 
-      resetRoadmap: () => set({ nodes: [], edges: [], selectedNode: null }),
+      setRoadmapId: (id) => set({ currentRoadmapId: id }),
+
+      resetRoadmap: () => set({ nodes: [], edges: [], selectedNode: null, currentRoadmapId: null }),
 
       setUserApiKey: (key) => set({ userApiKey: key }),
     }),
     {
       name: STORAGE_KEY,
-      partialize: (state) => ({ userApiKey: state.userApiKey }),
+      partialize: (state) => ({
+        userApiKey: state.userApiKey,
+        currentRoadmapId: state.currentRoadmapId,
+        nodes: state.nodes,
+        edges: state.edges
+      }),
     }
   )
 );

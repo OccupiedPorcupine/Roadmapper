@@ -12,6 +12,8 @@ const MOCK_ROADMAP_TITLES = [
     "Pottery from scratch",
 ]
 
+import { useSavedRoadmaps } from "@/hooks/useSavedRoadmaps";
+
 interface HomePageClientProps {
     children?: ReactNode // For auth button slot if needed?
     signInButton: ReactNode
@@ -25,6 +27,7 @@ export function HomePageClient({ signInButton, signOutButton, user }: HomePageCl
     const isLoggedIn = !!user
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const { roadmaps } = useSavedRoadmaps(isLoggedIn);
 
     // We can keep these if we want client-side optimistic updates, but standard auth flow reloads.
     // const handleSignIn = useCallback(() => setIsLoggedIn(true), [])
@@ -53,7 +56,7 @@ export function HomePageClient({ signInButton, signOutButton, user }: HomePageCl
             <SidebarDrawer
                 isOpen={sidebarOpen}
                 onClose={handleCloseSidebar}
-                roadmapTitles={MOCK_ROADMAP_TITLES}
+                roadmaps={roadmaps}
             />
         </>
     )

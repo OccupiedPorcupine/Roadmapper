@@ -14,8 +14,10 @@ from app.models import Roadmap, User
 from app.schemas.auth import LoginRequestSchema, TokenResponseSchema
 from app.schemas.roadmap import (
     GenerateRequestSchema,
+    RoadmapCreateSchema,
     RoadmapFullSchema,
     RoadmapListItemSchema,
+    RoadmapUpdateSchema,
 )
 from app.services.orchestrator import generate_roadmap_stream
 from app.services.sse import sse_event
@@ -90,6 +92,100 @@ async def get_roadmap(
     )
 
 
+@router.post("/roadmaps", response_model=RoadmapFullSchema)
+async def create_roadmap(
+    body: RoadmapCreateSchema,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RoadmapFullSchema:
+    """Create a new roadmap manually (e.g. saving an anonymous generation)."""
+    roadmap = Roadmap(
+        user_id=user.id,
+        title=body.title,
+        topic_query=body.topic_query,
+        nodes=body.nodes,
+        edges=body.edges,
+    )
+    db.add(roadmap)
+    await db.commit()
+    await db.refresh(roadmap)
+
+    return RoadmapFullSchema(
+        id=str(roadmap.id),
+        title=roadmap.title,
+        topic_query=roadmap.topic_query,
+        nodes=roadmap.nodes or [],
+        edges=roadmap.edges or [],
+        created_at=roadmap.created_at.isoformat() if roadmap.created_at else "",
+    )
+
+
+@router.patch("/roadmaps/{roadmap_id}", response_model=RoadmapFullSchema)
+async def update_roadmap(
+    roadmap_id: uuid.UUID,
+    body: RoadmapUpdateSchema,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RoadmapFullSchema:
+    """Update roadmap title, nodes, or edges. Must belong to user."""
+    result = await db.execute(
+        select(Roadmap).where(
+            Roadmap.id == roadmap_id,
+            Roadmap.user_id == user.id,
+        )
+    )
+    roadmap = result.scalar_one_or_none()
+    if not roadmap:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Roadmap not found",
+        )
+
+    if body.title is not None:
+        roadmap.title = body.title
+    if body.nodes is not None:
+        roadmap.nodes = body.nodes
+    if body.edges is not None:
+        roadmap.edges = body.edges
+
+    db.add(roadmap)
+    await db.commit()
+    await db.refresh(roadmap)
+
+    return RoadmapFullSchema(
+        id=str(roadmap.id),
+        title=roadmap.title,
+        topic_query=roadmap.topic_query,
+        nodes=roadmap.nodes or [],
+        edges=roadmap.edges or [],
+        created_at=roadmap.created_at.isoformat() if roadmap.created_at else "",
+    )
+
+
+@router.delete("/roadmaps/{roadmap_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_roadmap(
+    roadmap_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    """Delete a roadmap. Must belong to user."""
+    result = await db.execute(
+        select(Roadmap).where(
+            Roadmap.id == roadmap_id,
+            Roadmap.user_id == user.id,
+        )
+    )
+    roadmap = result.scalar_one_or_none()
+    if not roadmap:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Roadmap not found",
+        )
+
+    await db.delete(roadmap)
+    await db.commit()
+
+
 # --- Generate (SSE); optional auth (if present, save roadmap when stream ends) ---
 async def _stream_and_optionally_save(
     query: str,
@@ -124,6 +220,8 @@ async def _stream_and_optionally_save(
         async with async_session_factory() as save_session:
             save_session.add(roadmap)
             await save_session.commit()
+            await save_session.refresh(roadmap)
+            yield sse_event({"type": "meta", "id": str(roadmap.id)})
 
 
 @router.post("/generate")

@@ -3,16 +3,19 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 
+import Link from "next/link";
+import { RoadmapListItem } from "@/types";
+
 interface SidebarDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  roadmapTitles: string[];
+  roadmaps: RoadmapListItem[];
 }
 
 export function SidebarDrawer({
   isOpen,
   onClose,
-  roadmapTitles,
+  roadmaps,
 }: SidebarDrawerProps) {
   useEffect(() => {
     if (isOpen) {
@@ -55,20 +58,21 @@ export function SidebarDrawer({
               </h2>
             </div>
             <div className="overflow-y-auto p-4">
-              {roadmapTitles.length === 0 ? (
+              {roadmaps.length === 0 ? (
                 <p className="py-8 text-center text-sm text-neutral-500">
                   No roadmaps yet. Generate one from the home page.
                 </p>
               ) : (
                 <ul className="space-y-1">
-                  {roadmapTitles.map((title, i) => (
-                    <li key={`${title}-${i}`}>
-                      <button
-                        type="button"
-                        className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-white/10"
+                  {roadmaps.map((roadmap) => (
+                    <li key={roadmap.id}>
+                      <Link
+                        href={`/roadmap/${roadmap.id}`}
+                        onClick={onClose}
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-white/10"
                       >
-                        {title}
-                      </button>
+                        {roadmap.title}
+                      </Link>
                     </li>
                   ))}
                 </ul>

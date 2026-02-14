@@ -66,3 +66,16 @@ class RoadmapFullSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RoadmapUpdateSchema(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=512)
+    nodes: list[dict[str, Any]] | None = None
+    edges: list[dict[str, Any]] | None = None
+
+
+class RoadmapCreateSchema(BaseModel):
+    title: str = Field(..., min_length=1, max_length=512)
+    topic_query: str = Field(..., max_length=2000)
+    nodes: list[dict[str, Any]] = Field(default_factory=list)
+    edges: list[dict[str, Any]] = Field(default_factory=list)

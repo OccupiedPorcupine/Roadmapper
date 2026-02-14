@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import ReactFlow, {
   Background,
   Controls,
@@ -115,8 +115,54 @@ function RoadmapCanvasInner() {
     [storeNodes, setSelectedNode]
   )
 
+  const currentRoadmapId = useRoadmapStore((s) => s.currentRoadmapId)
+  const setRoadmapId = useRoadmapStore((s) => s.setRoadmapId)
+  const [isSaving, setIsSaving] = React.useState(false)
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true)
+    try {
+      const { roadmapService } = await import("@/lib/services/roadmap-service");
+
+      if (currentRoadmapId) {
+        // Update existing
+        await roadmapService.update(currentRoadmapId, {
+          nodes: storeNodes,
+          edges: storeEdges
+        })
+        alert("Roadmap saved successfully!")
+      } else {
+        // Create new (Save to Account)
+        // We need a title and topic_query. 
+        // Title we can infer from the first node or just "My Roadmap" if missing.
+        // Topic query we might not have if it was wiped on reload, but store should have it?
+        // Actually store doesn't persist the query string in `roadmapStore` explicitly except in URL maybe?
+        // Let's use a default title for now.
+        const title = storeNodes.length > 0 ? storeNodes[0].data.label : "Untitled Roadmap";
+        const newRoadmap = await roadmapService.create({
+          title,
+          topic_query: "Manual Save", // We don't track the original query in store yet, this is a minor debt.
+          nodes: storeNodes,
+          edges: storeEdges
+        })
+        setRoadmapId(newRoadmap.id)
+        alert("Roadmap saved to your account!")
+      }
+    } catch (error) {
+      console.error("Failed to save roadmap:", error)
+      alert("Failed to save roadmap. Please ensure you are logged in.")
+    } finally {
+      setIsSaving(false)
+    }
+  }, [currentRoadmapId, storeNodes, storeEdges, setRoadmapId])
+
   return (
-    <div className="h-full w-full bg-black">
+    <div className="relative h-full w-full bg-black">
+      <div className="absolute right-4 top-4 z-10">
+        <NeonButton onClick={handleSave} disabled={isSaving} className="!w-auto px-6 text-white">
+          {isSaving ? "Saving..." : currentRoadmapId ? "Save Changes" : "Save to Account"}
+        </NeonButton>
+      </div>
       <ReactFlow
         nodes={nodes}
         edges={edges}

@@ -25,3 +25,18 @@ export interface RoadmapEdge {
   target: string;
   [key: string]: unknown;
 }
+
+export interface RoadmapListItem {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
+export interface RoadmapFull {
+  id: string;
+  title: string;
+  topic_query: string;
+  nodes: RoadmapNode[];
+  edges: RoadmapEdge[];
+  created_at: string;
+}
