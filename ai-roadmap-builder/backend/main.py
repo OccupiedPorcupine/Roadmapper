@@ -45,9 +45,19 @@ env_origins = os.getenv("CORS_ORIGINS")
 if env_origins:
     origins.extend(env_origins.split(","))
 
+@app.middleware("http")
+async def debug_cors_middleware(request, call_next):
+    origin = request.headers.get("origin")
+    print(f"DEBUG CORS: Incoming Request Origin: {origin}")
+    print(f"DEBUG CORS: Allowed Origins: {origins}")
+    response = await call_next(request)
+    print(f"DEBUG CORS: Response Status: {response.status_code}")
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
